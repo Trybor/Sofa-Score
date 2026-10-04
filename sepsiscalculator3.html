@@ -4,364 +4,293 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Täglicher SOFA Score</title>
-	<style>
-		:root {
-			--ink: #17212b;
-			--muted: #607080;
-			--line: #d5dce3;
-			--paper: #eef1f3;
-			--white: #ffffff;
-			--navy: #202a33;
-			--graphite: #303a44;
-			--teal: #087f7a;
-			--green: #16803c;
-			--green-bg: #e4f7eb;
-			--yellow: #9a6700;
-			--yellow-bg: #fff4cc;
-			--red: #b42318;
-			--red-bg: #fde7e5;
-			--shadow: 0 18px 50px rgba(31, 42, 51, .12);
-		}
-
-		* { box-sizing: border-box; }
-		body {
-			margin: 0;
-			color: var(--ink);
-			background: linear-gradient(135deg, #eef1f3 0%, #f8fafb 52%, #e5eaed 100%);
-			font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-			line-height: 1.45;
-		}
-
-	.chart-box {
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 14px;
-	margin-top: 18px;
-    margin-bottom: 0px;
-    display: inline-block; /* Zieht den Kasten exakt auf die Inhaltsbreite zusammen */
-    width: 620px;          /* Hier feste Wunschbreite einstellen (z. B. 320px bis 400px) */
-    max-width: 150%;       /* Verhindert Überlauf auf Smartphones */
-}
-
-.chart-box svg {
-    width: 600px;
-    height: 150px;
-    display: block;
-}
-		button, input, select { font: inherit; }
-		button { cursor: pointer; }
-		.topbar {
-			background: linear-gradient(115deg, #202a33, #12181d);
-			color: #fff;
-			padding: 20px clamp(18px, 5vw, 72px);
-			border-bottom: 4px solid var(--teal);
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			gap: 18px;
-		}
-		.brand { display: flex; align-items: center; gap: 13px; }
-		.brand-mark {
-			width: 44px; height: 44px; border-radius: 10px;
-			display: grid; place-items: center; background: var(--teal);
-			box-shadow: inset 0 0 0 1px rgba(255,255,255,.25);
-			font-weight: 900; font-size: 20px;
-		}
-		.brand h1 { margin: 0; font-size: clamp(21px, 3vw, 29px); letter-spacing: .2px; }
-		.brand p { margin: 2px 0 0; color: #c8d6e5; font-size: 13px; }
-		.privacy-note { font-size: 12px; color: #c8d6e5; text-align: right; }
-		main { max-width: 1320px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 44px) 50px; }
-		.patient-bar, .panel, .score-card {
-			background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow);
-		}
-		.patient-bar { padding: 20px 22px; margin-bottom: 24px; display: grid; grid-template-columns: 1.5fr 1fr 1fr auto; gap: 14px; align-items: end; }
-		label { display: block; color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
-		input, select { width: 100%; border: 1px solid #aeb9c3; border-radius: 7px; padding: 11px 12px; color: var(--ink); background: #fbfcfd; outline: none; }
-		input:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,159,154,.14); }
-		.date-dropdown { position: relative; }
-		.date-dropdown > summary { list-style: none; width: 100%; border: 1px solid #aeb9c3; border-radius: 7px; padding: 11px 12px; background: #fbfcfd; cursor: pointer; font-weight: 800; }
-		.date-dropdown > summary::-webkit-details-marker { display: none; }
-		.date-dropdown[open] > summary { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,159,154,.14); }
-		.date-menu { position: absolute; z-index: 10; top: calc(100% + 6px); left: 0; width: min(280px, 90vw); padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
-		.date-menu .button { padding: 9px 12px; }
-		.date-nav { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin-bottom: 10px; }
-		.date-nav .button:first-child { text-align: left; }
-		.date-nav .button:last-child { text-align: right; }
-		.date-picker-native { width: 100%; }
-		.button { border: 0; border-radius: 8px; padding: 12px 17px; font-weight: 800; transition: transform .15s ease, filter .15s ease; }
-		.button:hover { transform: translateY(-1px); filter: brightness(1.05); }
-		.button-primary { background: var(--teal); color: #fff; }
-		.button-quiet { background: #e1e6ea; color: var(--navy); }
-		.dashboard { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 24px; align-items: start; }
-		.panel { padding: 24px; box-shadow: none; }
-		.section-heading { display: flex; justify-content: space-between; gap: 16px; align-items: start; margin-bottom: 20px; }
-		.section-heading h2 { margin: 0; font-size: 22px; }
-		.section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-		.date-chip { white-space: nowrap; border-radius: 999px; padding: 7px 11px; background: #e5f7f5; color: #087f7a; font-size: 12px; font-weight: 800; }
-		.criteria-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-		.criterion { border: 1px solid var(--line); border-radius: 10px; padding: 16px; background: #f9fafb; border-left: 4px solid var(--graphite); transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-		.criterion:hover { border-left-color: var(--teal); box-shadow: 0 8px 20px rgba(31,42,51,.08); transform: translateY(-2px); }
-		.criterion-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 12px; }
-		.criterion-title { display: flex; align-items: center; gap: 10px; }
-		.criterion h3 { margin: 0; font-size: 16px; }
-		.criterion-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 9px; color: var(--teal); background: #dceeed; }
-		.criterion-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-		.criterion small { color: var(--muted); display: block; margin-top: 3px; }
-		.points { color: var(--teal); font-size: 22px; font-weight: 900; }
-		.helper { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
-		.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-		.history-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-		.score-card { padding: 24px; position: sticky; top: 18px; overflow: hidden; background: #263039; color: #fff; border-color: #263039; }
-		.score-card::before { content: ""; display: block; height: 5px; position: absolute; inset: 0 0 auto; background: var(--teal); }
-		.score-label { color: #b9c6cf; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 900; }
-		.score-number { font-size: 76px; line-height: 1; font-weight: 900; margin: 12px 0 3px; }
-		.score-status { display: inline-block; font-weight: 900; padding: 5px 10px; border-radius: 999px; font-size: 12px; }
-		.score-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 22px 0; }
-		.mini-score { background: #34424c; border-radius: 8px; padding: 12px; }
-		.mini-score strong { display: block; font-size: 26px; }
-		.mini-score span { color: #c1ccd3; font-size: 12px; }
-		.legend { border-top: 1px solid #53616b; padding-top: 16px; font-size: 12px; color: #c1ccd3; }
-		.legend-row { display: flex; align-items: center; gap: 7px; margin: 8px 0; }
-		.dot { width: 10px; height: 10px; border-radius: 50%; }
-		.green { background: var(--green-bg); color: var(--green); }
-		.yellow { background: var(--yellow-bg); color: var(--yellow); }
-		.red { background: var(--red-bg); color: var(--red); }
-		.green.dot { background: var(--green); } .yellow.dot { background: #e0a400; } .red.dot { background: var(--red); }
-		.history { margin-top: 24px; }
-		.history-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-		.history-table th, .history-table td { border-bottom: 1px solid var(--line); padding: 12px 10px; text-align: left; }
-		.history-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-		.history-table td:first-child { font-weight: 800; }
-		.score-pill { display: inline-block; min-width: 34px; text-align: center; border-radius: 6px; padding: 4px 8px; font-weight: 900; }
-		.empty { color: var(--muted); text-align: center; padding: 22px 10px; }
-		.disclaimer { margin-top: 25px; color: var(--muted); font-size: 11px; }
-.chart-card {
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 20px;
-}
-.chart-title {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    margin: 0 0 12px 0;
-}
-.chart-svg {
-    width: 100%;
-    height: auto;
-    overflow: visible;
-    display: block;
-}
-.chart-grid { stroke: #e5eaed; stroke-width: 1; }
-.chart-axis-text { font-size: 11px; fill: var(--muted); font-family: inherit; }
-.chart-line { fill: none; stroke: var(--teal); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.chart-point { fill: #ffffff; stroke-width: 2.5; cursor: pointer; transition: r 0.15s ease; }
-.chart-point:hover { r: 6; }
-		/* --- NEU: Animation und Modal-Styling --- */
-		@keyframes pulse-red {
-			0% { box-shadow: 0 0 0 0 rgba(180, 35, 24, 0.6); }
-			70% { box-shadow: 0 0 0 14px rgba(180, 35, 24, 0); }
-			100% { box-shadow: 0 0 0 0 rgba(180, 35, 24, 0); }
-		}
-
-		.score-card.red {
-			animation: pulse-red 2.2s infinite;
-			border-color: var(--red);
-		}
-
-		dialog {
-			border: 0;
-			border-radius: 14px;
-			padding: 0;
-			box-shadow: 0 24px 60px rgba(16, 42, 67, 0.35);
-			max-width: 440px;
-			width: 90%;
-		}
-		dialog::backdrop {
-			background: rgba(16, 42, 67, 0.65);
-			backdrop-filter: blur(3px);
-		}
-		.modal-box {
-			padding: 28px 24px;
-			text-align: center;
-		}
-		.modal-icon {
-			font-size: 42px;
-			line-height: 1;
-			margin-bottom: 12px;
-		}
-		.modal-box h3 {
-			margin: 0 0 8px;
-			color: var(--red);
-			font-size: 20px;
-		}
-		.modal-box p {
-			margin: 8px 0;
-			font-size: 14px;
-			color: var(--ink);
-		}
-		.modal-sub {
-			color: var(--muted) !important;
-			font-size: 12px !important;
-			margin-bottom: 22px !important;
-		}
-		.modal-question {
-			font-weight: 800;
-			margin-top: 18px !important;
-		}
-		.modal-actions {
-			display: flex;
-			gap: 10px;
-			margin-top: 18px;
-		}
-		.modal-actions .button { flex: 1; }
-		.button-alert {
-			background: var(--red);
-			color: #fff;
-			padding: 13px;
-		}
-		/* --- ENDE NEU --- */
-
-		.chart-card {
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 20px;
-}
-.chart-title {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    margin: 0 0 12px 0;
-}
-.chart-svg {
-    width: 100%;
-    height: auto;
-    overflow: visible;
-    display: block;
-}
-.chart-grid { stroke: #e5eaed; stroke-width: 1; }
-.chart-axis-text { font-size: 11px; fill: var(--muted); font-family: inherit; }
-.chart-line { fill: none; stroke: var(--teal); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.chart-point { fill: #ffffff; stroke-width: 2.5; cursor: pointer; transition: r 0.15s ease; }
-.chart-point:hover { r: 6; }
-
-		@media (max-width: 900px) { .patient-bar { grid-template-columns: 1fr 1fr; } .dashboard { grid-template-columns: 1fr; } .score-card { position: static; } }
-		@media (max-width: 580px) { .topbar { align-items: flex-start; } .privacy-note { display: none; } .patient-bar, .criteria-grid { grid-template-columns: 1fr; } .panel, .score-card { padding: 18px; } .section-heading { display: block; } .date-chip { display: inline-block; margin-top: 10px; } .history { overflow-x: auto; } .history-table { min-width: 540px; } }
-	</style>
-    <!-- SheetJS für lokalen Excel-Import (offline nutzbar) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+	<link rel="stylesheet" href="css/app.css">
+	<script src="vendor/xlsx.full.min.js"></script>
 </head>
 <body>
 	<header class="topbar">
-		<div class="brand"><div class="brand-mark">S</div><div><h1>Täglicher SOFA Score</h1><p>Sepsis-assoziierte Organfunktionsbewertung</p></div></div>
+		<div class="brand">
+			<div class="brand-mark">S</div>
+			<div>
+				<h1>Täglicher SOFA Score</h1>
+				<p>Sepsis-assoziierte Organfunktionsbewertung</p>
+			</div>
+		</div>
 		<div class="privacy-note">Lokale Eingabe<br>Keine Datenübertragung</div>
 	</header>
 
 	<main>
 		<section class="patient-bar" aria-label="Patientenangaben">
-			<div><label for="patient">Patient / Fall-ID</label><input id="patient" placeholder="z. B. P-2026-014" autocomplete="off"></div>
 			<div>
-				
-    <label for="ward">Station</label>
-    <select id="ward">
-        <option value="" disabled selected>Station auswählen…</option>
-        <option value="Anästhesie ICU">Anästhesie ICU</option>
-        <option value="Chirurgie ICU">Chirurgie ICU</option>
-        <option value="GICU M">GICU M</option>
-        <option value="Herzchirurgie ICU">Herzchirurgie ICU</option>
-        <option value="Neurochirurgie ICU">Neurochirurgie ICU</option>
-    </select>
-	
-</div>
-			<div><label for="dateDropdownTrigger">Erhebungsdatum</label><details class="date-dropdown" id="dateDropdown"><summary id="dateDropdownTrigger">25092026</summary><div class="date-menu"><div class="date-nav"><button class="button button-quiet" id="previousAssessmentDate" type="button" aria-label="Vorheriger Tag">&#9664;</button><button class="button button-quiet" id="todayAssessmentDate" type="button">Heute</button><button class="button button-quiet" id="nextAssessmentDate" type="button" aria-label="Nächster Tag">&#9654;</button></div><input id="assessmentDatePicker" class="date-picker-native" type="date" aria-label="Datum im Kalender auswählen"></div></details></div>
+				<label for="patient">Patient / Fall-ID</label>
+				<input id="patient" placeholder="z. B. P-2026-014" autocomplete="off">
+			</div>
+			<div>
+				<label for="ward">Station</label>
+				<select id="ward">
+					<option value="" disabled selected>Station auswählen…</option>
+					<option value="Anästhesie ICU">Anästhesie ICU</option>
+					<option value="Chirurgie ICU">Chirurgie ICU</option>
+					<option value="GICU M">GICU M</option>
+					<option value="Herzchirurgie ICU">Herzchirurgie ICU</option>
+					<option value="Neurochirurgie ICU">Neurochirurgie ICU</option>
+				</select>
+			</div>
+			<div>
+				<label for="dateDropdownTrigger">Erhebungsdatum</label>
+				<details class="date-dropdown" id="dateDropdown">
+					<summary id="dateDropdownTrigger">25092026</summary>
+					<div class="date-menu">
+						<div class="date-nav">
+							<button class="button button-quiet" id="previousAssessmentDate" type="button" aria-label="Vorheriger Tag">&#9664;</button>
+							<button class="button button-quiet" id="todayAssessmentDate" type="button">Heute</button>
+							<button class="button button-quiet" id="nextAssessmentDate" type="button" aria-label="Nächster Tag">&#9654;</button>
+						</div>
+						<input id="assessmentDatePicker" class="date-picker-native" type="date" aria-label="Datum im Kalender auswählen">
+					</div>
+				</details>
+			</div>
 			<button class="button button-quiet" id="newPatient" type="button">Neuer Patient</button>
-			
 		</section>
 
 		<div class="dashboard">
 			<section class="panel">
-				<div class="section-heading"><div><h2> Erhebung</h2><p>Bitte den jeweils schlechtesten Wert des Tages dokumentieren.</p></div><span class="date-chip" id="dateBadge"></span></div>
+				<div class="section-heading">
+					<div>
+						<h2> Erhebung</h2>
+						<p>Bitte den jeweils schlechtesten Wert des Tages dokumentieren.</p>
+					</div>
+					<span class="date-chip" id="dateBadge"></span>
+				</div>
 				<form id="sofaForm">
 					<div class="criteria-grid">
-						<article class="criterion"><div class="criterion-head"><div class="criterion-title"><span class="criterion-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
-    <!-- Trachea (Luftröhre) und Carina / Hauptbronchien -->
-    <path d="M11.3 3.5v5.2c0 .4-.2.8-.5 1.1l-2.6 2.5m7.6-3.6l-2.6-2.5c-.3-.3-.5-.7-.5-1.1V3.5" />
-    <path d="M11.3 4.8h1.4M11.3 6.1h1.4M11.3 7.4h1.4" />
-    <path d="M12 9.8v10.5" stroke-dasharray="0" />
+						<article class="criterion">
+							<div class="criterion-head">
+								<div class="criterion-title">
+									<span class="criterion-icon" aria-hidden="true">
+										<svg viewBox="0 0 24 24">
+											<path d="M11.3 3.5v5.2c0 .4-.2.8-.5 1.1l-2.6 2.5m7.6-3.6l-2.6-2.5c-.3-.3-.5-.7-.5-1.1V3.5" />
+											<path d="M11.3 4.8h1.4M11.3 6.1h1.4M11.3 7.4h1.4" />
+											<path d="M12 9.8v10.5" stroke-dasharray="0" />
+											<path d="M8.2 12.3c-.6-.7-1.4-.9-2.1-.5m1.5-.7c-.2-.7.2-1.3.8-1.5" />
+											<path d="M7 13.5c-.8.1-1.6.8-1.5 1.5m1-.8c0 .8-.5 1.5-1.1 1.7" />
+											<path d="M9.4 15.2c-.5.8-.4 1.8-.1 2.5m-.4-1.6c-.6.3-1.1.9-1.2 1.6" />
+											<path d="M15.8 12.3c.6-.7 1.4-.9 2.1-.5m-1.5-.7c.2-.7-.2-1.3-.8-1.5" />
+											<path d="M17 13.5c.8.1 1.6.8 1.5 1.5m-1-.8c0 .8.5 1.5 1.1 1.7" />
+											<path d="M14.6 15.2c.5.8.4 1.8.1 2.5m.4-1.6c.6.3 1.1.9 1.2 1.6" />
+											<path d="M10.8 6.5C9.8 6.2 8.3 7.8 7.3 10.4c-1.3 3.4-1.6 6.8-1.4 7.6.6 2.2 3.1 2.5 4.8 1.2.7-.5 1.1-1.8 1.1-3.2V8.5c0-.9-.5-1.8-1-2z" />
+											<path d="M6 17.8c1.3-1.2 3.5-1.8 5.8-1" />
+											<path d="M13.2 6.5c1-.3 2.5 1.3 3.5 3.9 1.3 3.4 1.6 6.8 1.4 7.6-.6 2.2-3.1 2.5-4.8 1.2-.7-.5-1.1-1.8-1.1-3.2V8.5c0-.9.5-1.8 1-2z" />
+											<path d="M18 17.8c-1.3-1.2-3.5-1.8-5.8-1" />
+										</svg>
+									</span>
+									<div>
+										<h3>Atmung</h3>
+										<small>PaO₂ / FiO₂ (mmHg)</small>
+									</div>
+								</div>
+								<span class="points" id="respPoints">0</span>
+							</div>
+							<select id="respiration">
+								<option value="0">≥ 400 · 0 Punkte</option>
+								<option value="1">&lt; 400 · 1 Punkt</option>
+								<option value="2">&lt; 300 · 2 Punkte</option>
+								<option value="3">&lt; 200 mit Beatmung · 3 Punkte</option>
+								<option value="4">&lt; 100 mit Beatmung · 4 Punkte</option>
+							</select>
+							<p class="helper">Bei invasiver oder nicht-invasiver Beatmung bitte die passende Stufe wählen.</p>
+						</article>
 
-    <!-- Bronchialbaum links (aus Betrachtersicht) -->
-    <path d="M8.2 12.3c-.6-.7-1.4-.9-2.1-.5m1.5-.7c-.2-.7.2-1.3.8-1.5" />
-    <path d="M7 13.5c-.8.1-1.6.8-1.5 1.5m1-.8c0 .8-.5 1.5-1.1 1.7" />
-    <path d="M9.4 15.2c-.5.8-.4 1.8-.1 2.5m-.4-1.6c-.6.3-1.1.9-1.2 1.6" />
+						<article class="criterion">
+							<div class="criterion-head">
+								<div class="criterion-title">
+									<span class="criterion-icon" aria-hidden="true">
+										<svg viewBox="0 0 24 24">
+											<path d="M12 8.5c.4-1.8.2-3.8.7-5.5.3 1.6 1.4 3.2 2 4.6 1.6-.9 3.2-1.9 5-1.5-1.2 1.4-2.5 2.6-3.2 4.3 1.9.4 3.8.9 5.3 2.1-1.6.8-3.3 1.2-5 1.5.8 1.6 2.1 3 3.4 4.3-1.8-.2-3.3-1.1-4.7-2.1.2 1.9.3 3.8-.4 5.6-.7-1.7-1-3.6-1.5-5.4-.8 1.6-1.7 3.3-3.1 4.4.4-1.8 1.1-3.4 1.7-5.1-1.7.9-3.4 1.9-5.3 1.8 1.3-1.3 2.8-2.3 4.2-3.4-1.8-.6-3.6-1.1-5-2.2 1.7-.8 3.5-1.1 5.3-1.3-.8-1.5-1.9-2.9-3.1-4.2 1.7.3 3.1 1.3 4.5 2.3-.1-1.7-.1-3.4.6-5 .6 1.6 1 3.2 1.3 4.9.6-.5 1.1-.9 1.6-1.2z" />
+											<path d="M11 11.2c-.8-1.2-1.2-1.9-.9-2.4.4.6.9 1.3 1.3 2.1" />
+											<path d="M13.2 11c1-.8 1.7-1.4 2.3-.9-.6.6-1.3 1.1-2 1.6" />
+											<path d="M13.8 13.4c1.1.5 1.9 1 1.7 1.5-.7-.2-1.5-.5-2.2-1" />
+											<path d="M10.8 13.8c-.5 1.1-.9 1.9-1.5 1.6.3-.7.8-1.4 1.4-2.1" />
+										</svg>
+									</span>
+									<div>
+										<h3>Koagulation</h3>
+										<small>Thrombozyten (×10³/µl)</small>
+									</div>
+								</div>
+								<span class="points" id="coagPoints">0</span>
+							</div>
+							<select id="coagulation">
+								<option value="0">≥ 150 · 0 Punkte</option>
+								<option value="1">&lt; 150 · 1 Punkt</option>
+								<option value="2">&lt; 100 · 2 Punkte</option>
+								<option value="3">&lt; 50 · 3 Punkte</option>
+								<option value="4">&lt; 20 · 4 Punkte</option>
+							</select>
+						</article>
 
-    <!-- Bronchialbaum rechts (aus Betrachtersicht) -->
-    <path d="M15.8 12.3c.6-.7 1.4-.9 2.1-.5m-1.5-.7c.2-.7-.2-1.3-.8-1.5" />
-    <path d="M17 13.5c.8.1 1.6.8 1.5 1.5m-1-.8c0 .8.5 1.5 1.1 1.7" />
-    <path d="M14.6 15.2c.5.8.4 1.8.1 2.5m.4-1.6c.6.3 1.1.9 1.2 1.6" />
+						<article class="criterion">
+							<div class="criterion-head">
+								<div class="criterion-title">
+									<span class="criterion-icon" aria-hidden="true">
+										<svg viewBox="0 0 24 24">
+											<path d="M10.8 5c-3.1 0-5.7.5-7.1 2.3C2.8 8.4 3 11 3.2 13.9c.2 2.8.5 4.8 1.4 5.3.8.5 2.1-.2 4-1.7 1.8-1.4 3.7-2.1 4.7-2.7.3-.2.4-.6.4-1V7.2c0-1.2-1.3-2.2-2.9-2.2z" />
+											<path d="M14.2 5.5c1.8-.2 3.6.3 5 1.5 1.5 1.3 1.8 3.5 1.8 4.2 0 1.5-1.5 3.3-3.6 4.3-1.6.8-2.7.9-3.2.9v1.2c0 .4-.2.8-.6.9l-1 .4" />
+											<path d="M8.8 17.2c.4 1.3 1.4 1.8 2.5 1.6" />
+										</svg>
+									</span>
+									<div>
+										<h3>Leber</h3>
+										<small>Bilirubin (mg/dl)</small>
+									</div>
+								</div>
+								<span class="points" id="liverPoints">0</span>
+							</div>
+							<select id="liver">
+								<option value="0">&lt; 1,2 · 0 Punkte</option>
+								<option value="1">1,2–1,9 · 1 Punkt</option>
+								<option value="2">2,0–5,9 · 2 Punkte</option>
+								<option value="3">6,0–11,9 · 3 Punkte</option>
+								<option value="4">≥ 12,0 · 4 Punkte</option>
+							</select>
+						</article>
 
-    <!-- Rechter Lungenflügel (anatomisch) / links im Bild -->
-    <path d="M10.8 6.5C9.8 6.2 8.3 7.8 7.3 10.4c-1.3 3.4-1.6 6.8-1.4 7.6.6 2.2 3.1 2.5 4.8 1.2.7-.5 1.1-1.8 1.1-3.2V8.5c0-.9-.5-1.8-1-2z" />
-    <path d="M6 17.8c1.3-1.2 3.5-1.8 5.8-1" />
+						<article class="criterion">
+							<div class="criterion-head">
+								<div class="criterion-title">
+									<span class="criterion-icon" aria-hidden="true">
+										<svg viewBox="0 0 24 24">
+											<path d="M12 19s-7-4-7-9a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5-7 9-7 9Z"/>
+											<path d="M5 12h3l1-3 2 6 1-3h4"/>
+										</svg>
+									</span>
+									<div>
+										<h3>Kreislauf</h3>
+										<small>MAP / Vasopressoren</small>
+									</div>
+								</div>
+								<span class="points" id="cardioPoints">0</span>
+							</div>
+							<select id="cardiovascular">
+								<option value="0">MAP ≥ 70 mmHg · 0 Punkte</option>
+								<option value="1">MAP &lt; 70 mmHg · 1 Punkt</option>
+								<option value="2">Dopamin ≤ 5 oder Dobutamin · 2 Punkte</option>
+								<option value="3">Dopamin &gt; 5 bis 15 oder Adrenalin/Noradrenalin ≤ 0,1 · 3 Punkte</option>
+								<option value="4">Dopamin &gt; 15 oder Adrenalin/Noradrenalin &gt; 0,1 · 4 Punkte</option>
+							</select>
+						</article>
 
-    <!-- Linker Lungenflügel (anatomisch) / rechts im Bild -->
-    <path d="M13.2 6.5c1-.3 2.5 1.3 3.5 3.9 1.3 3.4 1.6 6.8 1.4 7.6-.6 2.2-3.1 2.5-4.8 1.2-.7-.5-1.1-1.8-1.1-3.2V8.5c0-.9.5-1.8 1-2z" />
-    <path d="M18 17.8c-1.3-1.2-3.5-1.8-5.8-1" />
-</svg></span><div><h3>Atmung</h3><small>PaO₂ / FiO₂ (mmHg)</small></div></div><span class="points" id="respPoints">0</span></div><select id="respiration"><option value="0">≥ 400 · 0 Punkte</option><option value="1">&lt; 400 · 1 Punkt</option><option value="2">&lt; 300 · 2 Punkte</option><option value="3">&lt; 200 mit Beatmung · 3 Punkte</option><option value="4">&lt; 100 mit Beatmung · 4 Punkte</option></select><p class="helper">Bei invasiver oder nicht-invasiver Beatmung bitte die passende Stufe wählen.</p></article>
-						<article class="criterion"><div class="criterion-head"><div class="criterion-title"><span class="criterion-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8.5c.4-1.8.2-3.8.7-5.5.3 1.6 1.4 3.2 2 4.6 1.6-.9 3.2-1.9 5-1.5-1.2 1.4-2.5 2.6-3.2 4.3 1.9.4 3.8.9 5.3 2.1-1.6.8-3.3 1.2-5 1.5.8 1.6 2.1 3 3.4 4.3-1.8-.2-3.3-1.1-4.7-2.1.2 1.9.3 3.8-.4 5.6-.7-1.7-1-3.6-1.5-5.4-.8 1.6-1.7 3.3-3.1 4.4.4-1.8 1.1-3.4 1.7-5.1-1.7.9-3.4 1.9-5.3 1.8 1.3-1.3 2.8-2.3 4.2-3.4-1.8-.6-3.6-1.1-5-2.2 1.7-.8 3.5-1.1 5.3-1.3-.8-1.5-1.9-2.9-3.1-4.2 1.7.3 3.1 1.3 4.5 2.3-.1-1.7-.1-3.4.6-5 .6 1.6 1 3.2 1.3 4.9.6-.5 1.1-.9 1.6-1.2z" /><path d="M11 11.2c-.8-1.2-1.2-1.9-.9-2.4.4.6.9 1.3 1.3 2.1" /><path d="M13.2 11c1-.8 1.7-1.4 2.3-.9-.6.6-1.3 1.1-2 1.6" /><path d="M13.8 13.4c1.1.5 1.9 1 1.7 1.5-.7-.2-1.5-.5-2.2-1" /><path d="M10.8 13.8c-.5 1.1-.9 1.9-1.5 1.6.3-.7.8-1.4 1.4-2.1" /></svg></span><div><h3>Koagulation</h3><small>Thrombozyten (×10³/µl)</small></div></div><span class="points" id="coagPoints">0</span></div><select id="coagulation"><option value="0">≥ 150 · 0 Punkte</option><option value="1">&lt; 150 · 1 Punkt</option><option value="2">&lt; 100 · 2 Punkte</option><option value="3">&lt; 50 · 3 Punkte</option><option value="4">&lt; 20 · 4 Punkte</option></select></article>
-						<article class="criterion"><div class="criterion-head"><div class="criterion-title"><span class="criterion-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.8 5c-3.1 0-5.7.5-7.1 2.3C2.8 8.4 3 11 3.2 13.9c.2 2.8.5 4.8 1.4 5.3.8.5 2.1-.2 4-1.7 1.8-1.4 3.7-2.1 4.7-2.7.3-.2.4-.6.4-1V7.2c0-1.2-1.3-2.2-2.9-2.2z" /><path d="M14.2 5.5c1.8-.2 3.6.3 5 1.5 1.5 1.3 1.8 3.5 1.8 4.2 0 1.5-1.5 3.3-3.6 4.3-1.6.8-2.7.9-3.2.9v1.2c0 .4-.2.8-.6.9l-1 .4" /><path d="M8.8 17.2c.4 1.3 1.4 1.8 2.5 1.6" /></svg></span><div><h3>Leber</h3><small>Bilirubin (mg/dl)</small></div></div><span class="points" id="liverPoints">0</span></div><select id="liver"><option value="0">&lt; 1,2 · 0 Punkte</option><option value="1">1,2–1,9 · 1 Punkt</option><option value="2">2,0–5,9 · 2 Punkte</option><option value="3">6,0–11,9 · 3 Punkte</option><option value="4">≥ 12,0 · 4 Punkte</option></select></article>
-						<article class="criterion"><div class="criterion-head"><div class="criterion-title"><span class="criterion-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19s-7-4-7-9a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5-7 9-7 9Z"/><path d="M5 12h3l1-3 2 6 1-3h4"/></svg></span><div><h3>Kreislauf</h3><small>MAP / Vasopressoren</small></div></div><span class="points" id="cardioPoints">0</span></div><select id="cardiovascular"><option value="0">MAP ≥ 70 mmHg · 0 Punkte</option><option value="1">MAP &lt; 70 mmHg · 1 Punkt</option><option value="2">Dopamin ≤ 5 oder Dobutamin · 2 Punkte</option><option value="3">Dopamin &gt; 5 bis 15 oder Adrenalin/Noradrenalin ≤ 0,1 · 3 Punkte</option><option value="4">Dopamin &gt; 15 oder Adrenalin/Noradrenalin &gt; 0,1 · 4 Punkte</option></select></article>
-						<article class="criterion"><div class="criterion-head"><div class="criterion-title"><span class="criterion-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4c-3-1-5 2-4 5-2 2-1 6 2 6 1 4 6 3 6-1V9c0-3-1-4-4-5Z"/><path d="M15 4c3-1 5 2 4 5 2 2 1 6-2 6-1 4-6 3-6-1V9c0-3 1-4 4-5Z"/><path d="M12 9v5"/></svg></span><div><h3>ZNS</h3><small>Glasgow Coma Scale</small></div></div><span class="points" id="cnsPoints">0</span></div><select id="cns"><option value="0">GCS 15 · 0 Punkte</option><option value="1">GCS 13–14 · 1 Punkt</option><option value="2">GCS 10–12 · 2 Punkte</option><option value="3">GCS 6–9 · 3 Punkte</option><option value="4">GCS &lt; 6 · 4 Punkte</option></select></article>
-						<article class="criterion"><div class="criterion-head"><div class="criterion-title"><span class="criterion-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 5c-3-2-6 0-6 4 0 3 2 4 3 5 0 4 2 6 5 5V9c0-2-1-3-2-4Z"/><path d="M14 5c3-2 6 0 6 4 0 3-2 4-3 5 0 4-2 6-5 5V9c0-2 1-3 2-4Z"/><path d="M10 16h4"/></svg></span><div><h3>Niere</h3><small>Kreatinin / Urinausscheidung</small></div></div><span class="points" id="renalPoints">0</span></div><select id="renal"><option value="0">Kreatinin &lt; 1,2 · 0 Punkte</option><option value="1">1,2–1,9 · 1 Punkt</option><option value="2">2,0–3,4 · 2 Punkte</option><option value="3">3,5–4,9 oder Urin &lt; 500 ml/d · 3 Punkte</option><option value="4">≥ 5,0 oder Urin &lt; 200 ml/d · 4 Punkte</option></select></article>
+						<article class="criterion">
+							<div class="criterion-head">
+								<div class="criterion-title">
+									<span class="criterion-icon" aria-hidden="true">
+										<svg viewBox="0 0 24 24">
+											<path d="M12 2.8v18.4" />
+											<path d="M12 2.8c-1.5 0-3.3.6-4 1.8-.8-.4-1.8-.3-2.5.3-.8.7-1 1.8-.7 2.7-.9.5-1.5 1.5-1.4 2.6.1.7.4 1.3.8 1.8-.8.6-1.3 1.6-1.1 2.6.2 1 .9 1.8 1.8 2-.5.8-.6 1.8-.2 2.7.5 1 1.5 1.6 2.6 1.6.1.8.6 1.6 1.4 2 1 .5 2.2.4 3.3-.1" />
+											<path d="M12 2.8c1.5 0 3.3.6 4 1.8.8-.4 1.8-.3 2.5.3.8.7 1 1.8.7 2.7.9.5 1.5 1.5 1.4 2.6-.1.7-.4 1.3-.8 1.8.8.6 1.3 1.6 1.1 2.6-.2 1-.9 1.8-1.8 2 .5.8.6 1.8.2 2.7-.5 1-1.5 1.6-2.6 1.6-.1.8-.6 1.6-1.4 2-1 .5-2.2.4-3.3-.1" />
+											<path d="M11 6.8c-1.2 0-2.3.8-2.6 2-.3 1.2.3 2.4 1.4 3" />
+											<path d="M6 10.5c.8.6 1.6 1.4 2.6 1.5 1.2.1 2.4-.6 2.8-1.7" />
+											<path d="M6.2 16.5c1.4.3 2.8-.5 3.3-1.8" />
+											<path d="M11 18.2c-.9.2-1.9-.3-2.4-1.1" />
+											<path d="M13 6.8c1.2 0 2.3.8 2.6 2 .3 1.2-.3 2.4-1.4 3" />
+											<path d="M18 10.5c-.8.6-1.6 1.4-2.6 1.5-1.2.1-2.4-.6-2.8-1.7" />
+											<path d="M17.8 16.5c-1.4.3-2.8-.5-3.3-1.8" />
+											<path d="M13 18.2c.9.2-1.9-.3-2.4-1.1" />
+										</svg>
+									</span>
+									<div>
+										<h3>ZNS</h3>
+										<small>Glasgow Coma Scale</small>
+									</div>
+								</div>
+								<span class="points" id="cnsPoints">0</span>
+							</div>
+							<select id="cns">
+								<option value="0">GCS 15 · 0 Punkte</option>
+								<option value="1">GCS 13–14 · 1 Punkt</option>
+								<option value="2">GCS 10–12 · 2 Punkte</option>
+								<option value="3">GCS 6–9 · 3 Punkte</option>
+								<option value="4">GCS &lt; 6 · 4 Punkte</option>
+							</select>
+						</article>
+
+						<article class="criterion">
+							<div class="criterion-head">
+								<div class="criterion-title">
+									<span class="criterion-icon" aria-hidden="true">
+										<svg viewBox="0 0 24 24">
+											<path d="M10.8 11.2c-.6-.7-.8-1.5-.4-2.4.6-1.5 0-3.3-1.6-4.1-2.4-1.2-5.3.3-5.8 2.9-.6 3.2.7 6.4 3.7 7.1 1.7.4 3.1-.4 3.7-1.7.3-.7.1-1.3-.4-1.8" />
+											<path d="M10.3 11.8c.8.5 1.2 1.3 1.2 2.3V21" />
+											<path d="M13.2 11.2c.6-.7.8-1.5.4-2.4-.6-1.5 0-3.3 1.6-4.1 2.4-1.2 5.3.3 5.8 2.9.6 3.2-.7 6.4-3.7 7.1-1.7.4-3.1-.4-3.7-1.7-.3-.7-.1-1.3.4-1.8" />
+											<path d="M13.7 11.8c-.8.5-1.2 1.3-1.2 2.3V21" />
+										</svg>
+									</span>
+									<div>
+										<h3>Niere</h3>
+										<small>Kreatinin / Urinausscheidung</small>
+									</div>
+								</div>
+								<span class="points" id="renalPoints">0</span>
+							</div>
+							<select id="renal">
+								<option value="0">Kreatinin &lt; 1,2 · 0 Punkte</option>
+								<option value="1">1,2–1,9 · 1 Punkt</option>
+								<option value="2">2,0–3,4 · 2 Punkte</option>
+								<option value="3">3,5–4,9 oder Urin &lt; 500 ml/d · 3 Punkte</option>
+								<option value="4">≥ 5,0 oder Urin &lt; 200 ml/d · 4 Punkte</option>
+							</select>
+						</article>
 					</div>
-<div class="actions">
-    <!-- Verstecktes Datei-Feld -->
-    <input id="labFileInput" type="file" accept=".xlsx, .xls, .csv" hidden>
-
-    <!-- Labor-Button ganz links in der Leiste -->
-    <button class="button button-primary" id="btnUploadLab" type="button" style="margin-right: auto;">Labor importieren</button>
-
-    <button class="button button-quiet" type="reset">Zurücksetzen</button>
-    <button class="button button-primary" type="submit">Tageswert speichern</button>
-</div>
+					<div class="actions">
+						<input id="labFileInput" type="file" accept=".xlsx, .xls, .csv" hidden>
+						<button class="button button-primary" id="btnUploadLab" type="button" style="margin-right: auto;">Labor importieren</button>
+						<button class="button button-quiet" type="reset">Zurücksetzen</button>
+						<button class="button button-primary" type="submit">Tageswert speichern</button>
+					</div>
 				</form>
 				<p class="disclaimer">Hinweis: Der SOFA-Score unterstützt die klinische Einschätzung und ersetzt keine ärztliche Beurteilung. Die Kriterien orientieren sich an der etablierten SOFA-Klassifikation und lokalen Sepsisstandards.</p>
 			</section>
 
-			<aside class="score-card" id="scoreCard"><span class="score-label">Aktueller SOFA-Score</span><div class="score-number" id="currentScore">0</div><span class="score-status green" id="currentStatus">0 · keine Zunahme</span><div class="score-summary"><div class="mini-score"><strong id="firstScore">–</strong><span>Erster erhobener Score</span></div><div class="mini-score"><strong id="deltaScore">0</strong><span>Delta zum Erstwert</span></div></div><div class="legend"><strong>Farbkodierung des aktuellen Wertes</strong><div class="legend-row"><i class="dot green"></i> 0 Punkte: grün</div><div class="legend-row"><i class="dot yellow"></i> 1 Punkt / Delta 1: gelb</div><div class="legend-row"><i class="dot red"></i> ≥ 2 Punkte: rot</div></div></aside>
+			<aside class="score-card" id="scoreCard">
+				<span class="score-label">Aktueller SOFA-Score</span>
+				<div class="score-number" id="currentScore">0</div>
+				<span class="score-status green" id="currentStatus">0 · keine Zunahme</span>
+				<div class="score-summary">
+					<div class="mini-score">
+						<strong id="firstScore">–</strong>
+						<span>Erster erhobener Score</span>
+					</div>
+					<div class="mini-score">
+						<strong id="deltaScore">0</strong>
+						<span>Delta zum Erstwert</span>
+					</div>
+				</div>
+				<div class="legend">
+					<strong>Farbkodierung des aktuellen Wertes</strong>
+					<div class="legend-row"><i class="dot green"></i> 0 Punkte: grün</div>
+					<div class="legend-row"><i class="dot yellow"></i> 1 Punkt / Delta 1: gelb</div>
+					<div class="legend-row"><i class="dot red"></i> ≥ 2 Punkte: rot</div>
+				</div>
+			</aside>
 		</div>
 
 		<section class="panel history">
-    <div class="section-heading">
-        <div>
-            <h2>Tagesverlauf</h2>
-            <p>Jede gespeicherte Erhebung bleibt für diese Patientenakte sichtbar.</p>
-        </div>
-        <div class="history-actions">
-            <button class="button button-quiet button-sm" id="exportHistory" type="button">Tabelle exportieren</button>
-            <button class="button button-primary" id="exportJson" type="button">Daten speichern</button>
-            <button class="button button-quiet" id="importHistory" type="button">Verlauf laden</button>
-            <input id="historyFile" type="file" accept="application/json,.json" hidden>
-        </div>
-    </div>
-
-    <!-- HIER: Nur dieses eine Element für den Chart einfügen -->
-    <div id="chartContainer"></div>
-
-    <!-- Das originale Element für die Tabelle -->
-    <div id="historyContainer"></div>
-</section>
+			<div class="section-heading">
+				<div>
+					<h2>Tagesverlauf</h2>
+					<p>Jede gespeicherte Erhebung bleibt für diese Patientenakte sichtbar.</p>
+				</div>
+				<div class="history-actions">
+					<button class="button button-quiet button-sm" id="exportHistory" type="button">Tabelle exportieren</button>
+					<button class="button button-primary" id="exportJson" type="button">Daten speichern</button>
+					<button class="button button-quiet" id="importHistory" type="button">Verlauf laden</button>
+					<input id="historyFile" type="file" accept="application/json,.json" hidden>
+				</div>
+			</div>
+			<div id="historyContainer"></div>
+		</section>
 	</main>
 
-	<!-- --- NEU: Blockierender Bestätigungsdialog für Erstwert >= 2 oder Delta >= 2 --- -->
 	<dialog id="alertModal">
 		<div class="modal-box">
 			<div class="modal-icon">⚠️</div>
@@ -375,800 +304,11 @@
 			</div>
 		</div>
 	</dialog>
-	
-	<!-- --- ENDE NEU --- -->
 
-	<script>
-
-		const fields = ['respiration', 'coagulation', 'liver', 'cardiovascular', 'cns', 'renal'];
-		
-		// --- OPTIMIERT: Sauberes Lookup-Mapping statt unübersichtlicher String-Ketten ---
-		const fieldLabelMap = {
-			respiration: 'respPoints',
-			coagulation: 'coagPoints',
-			liver: 'liverPoints',
-			cardiovascular: 'cardioPoints',
-			cns: 'cnsPoints',
-			renal: 'renalPoints'
-		};
-
-		const state = { records: [] };
-		const fileFormatVersion = 1;
-		let labDatabase = [];
-
-		function normalizeLabKey(value) {
-			return String(value ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-		}
-
-		function normalizeLabNumber(value) {
-			if (value === undefined || value === null || value === '') return null;
-			const normalized = String(value).trim().replace(',', '.').replace(/[^0-9.+-]/g, '');
-			const number = Number(normalized);
-			return Number.isFinite(number) ? number : null;
-		}
-
-		function normalizeLabDate(value) {
-			if (value instanceof Date && !Number.isNaN(value.getTime())) {
-				return value.toISOString().slice(0, 10);
-			}
-			if (typeof value === 'number' && /^\d{8}$/.test(String(value))) {
-				const compactDate = String(value);
-				return `${compactDate.slice(4)}-${compactDate.slice(2, 4)}-${compactDate.slice(0, 2)}`;
-			}
-			if (typeof value === 'number' && window.XLSX?.SSF) {
-				const parsed = window.XLSX.SSF.parse_date_code(value);
-				if (parsed) return `${parsed.y}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`;
-			}
-			const text = String(value ?? '').trim();
-			let match = text.match(/^(\d{2})(\d{2})(\d{4})$/);
-			if (match) return `${match[3]}-${match[2]}-${match[1]}`;
-			match = text.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
-			if (match) return `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
-			match = text.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})/);
-			return match ? `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}` : text;
-		}
-
-		function getLabValue(row, aliases) {
-			const entry = Object.entries(row).find(([key]) => aliases.includes(normalizeLabKey(key)));
-			return entry ? entry[1] : null;
-		}
-
-        // Button-Klick an das versteckte Input weiterleiten
-        document.getElementById('btnUploadLab').addEventListener('click', () => {
-            document.getElementById('labFileInput').click();
-        });
-
-        // Datei einlesen und Blätter parsen
-        document.getElementById('labFileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                try {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    
-					labDatabase = [];
-                    workbook.SheetNames.forEach(sheetName => {
-						const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, raw: true });
-						rows.forEach(row => {
-							const patient = getLabValue(row, ['patient', 'patientid', 'patientenid', 'patientfallid', 'fallid', 'fallnummer', 'patientennummer']) || sheetName;
-							labDatabase.push({
-								patient: normalizeLabKey(patient),
-								date: normalizeLabDate(getLabValue(row, ['datum', 'date', 'erhebungsdatum', 'messdatum'])),
-								horovitz: getLabValue(row, ['horovitz', 'pao2fio2', 'pao2f i o2']),
-								platelets: getLabValue(row, ['thrombozyten', 'platelets', 'plt']),
-								bilirubin: getLabValue(row, ['bilirubin', 'bilirubinmgdl']),
-								creatinine: getLabValue(row, ['kreatinin', 'creatinine']),
-								urine: getLabValue(row, ['urin', 'urinausscheidung', 'urine']),
-								map: getLabValue(row, ['map', 'mittlererarteriellerdruck']),
-								noradrenalin: getLabValue(row, ['noradrenalin', 'norepinephrin']),
-								dopamine: getLabValue(row, ['dopamin', 'dopamine']),
-								gcs: getLabValue(row, ['gcs', 'glasgowcomascale'])
-							});
-						});
-                    });
-
-					const importedRecords = importLabHistoryFromExcel();
-					alert(`Labordaten erfolgreich importiert!\nGefundene Patienten: ${workbook.SheetNames.join(', ')}\nÜbernommene Tageswerte: ${importedRecords}`);
-                    applyLabValuesIfAvailable();
-                } catch (err) {
-                    console.error('Fehler beim Excel-Import:', err);
-                    alert('Die Datei konnte nicht gelesen werden. Bitte Format prüfen.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
-        // Schwellenwerte für SOFA-Stufen (0 bis 4)
-        function mapHorovitzToSofa(paO2FiO2) {
-			const v = normalizeLabNumber(paO2FiO2);
-			if (v === null) return null;
-            if (v >= 400) return "0";
-            if (v >= 300) return "1";
-            if (v >= 200) return "2";
-            // Bei Werten unter 200: Standardmäßig Stufe 2 oder 3 vorschlagen (Beatmung manuell anpassbar)
-            return "2";
-        }
-
-        function mapPlateletsToSofa(plt) {
-			const v = normalizeLabNumber(plt);
-			if (v === null) return null;
-            if (v >= 150) return "0";
-            if (v >= 100) return "1";
-            if (v >= 50) return "2";
-            if (v >= 20) return "3";
-            return "4";
-        }
-
-        function mapBilirubinToSofa(bili) {
-			const v = normalizeLabNumber(bili);
-			if (v === null) return null;
-            if (v < 1.2) return "0";
-            if (v <= 1.9) return "1";
-            if (v <= 5.9) return "2";
-            if (v <= 11.9) return "3";
-            return "4";
-        }
-
-        function mapRenalToSofa(crea, urine) {
-			const normalizedUrine = normalizeLabNumber(urine);
-			if (normalizedUrine !== null) {
-				const u = normalizedUrine;
-                if (u < 200) return "4";
-                if (u < 500) return "3";
-            }
-			const c = normalizeLabNumber(crea);
-			if (c === null) return null;
-            if (c < 1.2) return "0";
-            if (c <= 1.9) return "1";
-            if (c <= 3.4) return "2";
-            if (c <= 4.9) return "3";
-            return "4";
-        }
-
-		function labEntryToRecord(entry) {
-			if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) return null;
-
-			const values = [
-				mapHorovitzToSofa(entry.horovitz),
-				mapPlateletsToSofa(entry.platelets),
-				mapBilirubinToSofa(entry.bilirubin),
-				mapCardioToSofa(entry.map, entry.noradrenalin, entry.dopamine),
-				mapCnsToSofa(entry.gcs),
-				mapRenalToSofa(entry.creatinine, entry.urine)
-			];
-			if (values.every(value => value === null)) return null;
-
-			return { date: entry.date, score: values.reduce((sum, value) => sum + (value === null ? 0 : Number(value)), 0) };
-		}
-
-		function importLabHistoryFromExcel() {
-			const currentPatient = normalizeLabKey(patientInput.value);
-			if (!currentPatient) return 0;
-
-			const importedRecords = labDatabase
-				.filter(entry => entry.patient === currentPatient)
-				.map(labEntryToRecord)
-				.filter(Boolean)
-				.sort((a, b) => a.date.localeCompare(b.date));
-
-			if (!importedRecords.length) return 0;
-
-			state.records = importedRecords;
-			setAssessmentDate(importedRecords[importedRecords.length - 1].date);
-			saveLocally();
-			renderLiveScore();
-			renderHistory();
-			return importedRecords.length;
-		}
-
-        // Automatische Zuweisung in die Formularfelder
-        function applyLabValuesIfAvailable() {
-			const currentPatient = normalizeLabKey(patientInput.value);
-			const currentDate = getAssessmentDate();
-
-			if (!currentPatient) return;
-
-			const match = labDatabase.find(entry => entry.patient === currentPatient && entry.date === currentDate);
-            if (!match) return;
-
-			const respVal = mapHorovitzToSofa(match.horovitz);
-			const coagVal = mapPlateletsToSofa(match.platelets);
-			const liverVal = mapBilirubinToSofa(match.bilirubin);
-			const renalVal = mapRenalToSofa(match.creatinine, match.urine);
-			const cardioVal = mapCardioToSofa(match.map, match.noradrenalin, match.dopamine);
-			const cnsVal = mapCnsToSofa(match.gcs);
-
-            // Nur überschreiben, wenn tatsächlich ein Wert existiert
-            if (respVal !== null) document.getElementById('respiration').value = respVal;
-            if (coagVal !== null) document.getElementById('coagulation').value = coagVal;
-            if (liverVal !== null) document.getElementById('liver').value = liverVal;
-            if (renalVal !== null) document.getElementById('renal').value = renalVal;
-			if (cardioVal !== null) document.getElementById('cardiovascular').value = cardioVal;
-			if (cnsVal !== null) document.getElementById('cns').value = cnsVal;
-			renderLiveScore();
-		}
-
-		function mapCardioToSofa(mapVal, norVal, dopaVal) {
-		const nor = normalizeLabNumber(norVal) ?? 0;
-		const dopa = normalizeLabNumber(dopaVal) ?? 0;
-		const map = normalizeLabNumber(mapVal);
-
-    // Stufe 4: Dopamin > 15 oder Noradrenalin/Adrenalin > 0.1
-    if (dopa > 15 || nor > 0.1) return "4";
-
-    // Stufe 3: Dopamin > 5 bis 15 oder Noradrenalin/Adrenalin <= 0.1
-    if (dopa > 5 || nor > 0) return "3";
-
-    // Stufe 2: Dopamin <= 5 (bei laufender Katecholamintherapie)
-    if (dopa > 0) return "2";
-
-    // Stufe 1 oder 0 anhand des MAP (wenn keine Vasopressoren laufen)
-    if (map !== null) {
-        if (map < 70) return "1";
-        return "0";
-    }
-
-    return null;
-		}
-
-		// Mapping für ZNS (Glasgow Coma Scale: 3 bis 15)
-		function mapCnsToSofa(gcsVal) {
-		const gcs = normalizeLabNumber(gcsVal);
-		if (gcs === null) return null;
-
-    if (gcs >= 15) return "0";
-    if (gcs >= 13) return "1";
-    if (gcs >= 10) return "2";
-    if (gcs >= 6) return "3";
-    return "4"; // GCS < 6
-		}
-		// --- OPTIMIERT: Patienten-spezifischer Speicher-Schlüssel ---
-		const storagePrefix = 'sofa_patient_';
-		const defaultStorageKey = 'sofa_last_session';
-		function getStorageKey() {
-			const id = patientInput.value.trim();
-			return id ? storagePrefix + id.replace(/[^a-z0-9_-]+/gi, '_') : defaultStorageKey;
-		}
-
-		const today = new Date().toISOString().slice(0, 10);
-		const patientInput = document.getElementById('patient');
-		const wardInput = document.getElementById('ward');
-		const datePickerInput = document.getElementById('assessmentDatePicker');
-		const dateInput = datePickerInput;
-		const dateDropdown = document.getElementById('dateDropdown');
-		const dateDropdownTrigger = document.getElementById('dateDropdownTrigger');
-		const previousAssessmentDateButton = document.getElementById('previousAssessmentDate');
-		const todayAssessmentDateButton = document.getElementById('todayAssessmentDate');
-		const nextAssessmentDateButton = document.getElementById('nextAssessmentDate');
-
-		function getAssessmentDate() {
-			return normalizeLabDate(dateInput.value);
-		}
-
-		function setAssessmentDate(isoDate) {
-			const match = String(isoDate || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-			datePickerInput.value = match ? isoDate : '';
-			dateDropdownTrigger.textContent = match ? `${match[3]}${match[2]}${match[1]}` : 'Datum auswählen';
-		}
-
-		setAssessmentDate(today);
-
-		function shiftAssessmentDate(days) {
-			const current = new Date(`${getAssessmentDate() || today}T12:00:00`);
-			current.setDate(current.getDate() + days);
-			setAssessmentDate(current.toISOString().slice(0, 10));
-			renderLiveScore();
-			applyLabValuesIfAvailable();
-			dateDropdown.open = false;
-		}
-
-		previousAssessmentDateButton.addEventListener('click', () => shiftAssessmentDate(-1));
-		nextAssessmentDateButton.addEventListener('click', () => shiftAssessmentDate(1));
-
-		todayAssessmentDateButton.addEventListener('click', () => {
-			setAssessmentDate(today);
-			renderLiveScore();
-			applyLabValuesIfAvailable();
-			dateDropdown.open = false;
-		});
-
-		datePickerInput.addEventListener('change', () => {
-			setAssessmentDate(datePickerInput.value);
-			renderLiveScore();
-			applyLabValuesIfAvailable();
-			dateDropdown.open = false;
-		});
-
-		function saveLocally() {
-			const key = getStorageKey();
-			localStorage.setItem(key, JSON.stringify({ 
-				patient: patientInput.value.trim(), 
-				ward: wardInput.value.trim(), 
-				records: state.records 
-			}));
-			// Letzte Sitzungs-Referenz halten
-			if (key !== defaultStorageKey) {
-				localStorage.setItem(defaultStorageKey, JSON.stringify({ lastPatientId: patientInput.value.trim() }));
-			}
-		}
-
-		function restoreLocalData(targetId = null) {
-			try {
-				let key = defaultStorageKey;
-				if (targetId) {
-					key = storagePrefix + targetId.replace(/[^a-z0-9_-]+/gi, '_');
-				} else {
-					const lastSession = JSON.parse(localStorage.getItem(defaultStorageKey) || 'null');
-					if (lastSession && lastSession.lastPatientId) {
-						key = storagePrefix + lastSession.lastPatientId.replace(/[^a-z0-9_-]+/gi, '_');
-					}
-				}
-
-				const data = JSON.parse(localStorage.getItem(key) || 'null');
-				if (!data || !Array.isArray(data.records)) {
-					state.records = [];
-					return;
-				}
-
-				state.records = data.records.filter(record => 
-					/^\d{4}-\d{2}-\d{2}$/.test(record.date) && 
-					Number.isInteger(record.score) && 
-					record.score >= 0 && 
-					record.score <= 24
-				).sort((a, b) => a.date.localeCompare(b.date));
-
-				patientInput.value = data.patient || '';
-				wardInput.value = data.ward || '';
-				if (state.records.length) setAssessmentDate(state.records[state.records.length - 1].date);
-			} catch (error) { 
-				console.error('Fehler beim Laden lokaler Daten:', error); 
-			}
-		}
-
-		let targetDirectoryHandle = null;
-
-		function sanitizeStorageName(value, fallback) {
-			const normalized = value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-			return normalized.replace(/[^a-z0-9_-]+/gi, '_').replace(/^_+|_+$/g, '') || fallback;
-		}
-
-		async function downloadFile(content, type, filename, folderName) {
-			// 1. Moderne File System API (Chrome, Edge, Opera)
-			if ('showDirectoryPicker' in window) {
-				try {
-					// Der gewählte Zielort enthält den zentralen Ordner für alle SOFA-Scores.
-					if (!targetDirectoryHandle) {
-						targetDirectoryHandle = await window.showDirectoryPicker({
-							id: 'sofa_scores_folder',
-							startIn: 'documents'
-						});
-					}
-
-					const sofaScoresDirectoryHandle = await targetDirectoryHandle.getDirectoryHandle('Sofa Scores', { create: true });
-					const stationDirectoryHandle = await sofaScoresDirectoryHandle.getDirectoryHandle(folderName, { create: true });
-					const fileHandle = await stationDirectoryHandle.getFileHandle(filename, { create: true });
-					const writable = await fileHandle.createWritable();
-					await writable.write(content);
-					await writable.close();
-					return;
-				} catch (err) {
-					// Falls der Nutzer das Ordner-Fenster abbricht, nichts weiter tun.
-					if (err.name === 'AbortError') return;
-					console.warn('Ordnerzugriff nicht möglich, wechsle zu Standard-Download:', err);
-				}
-			}
-
-			// 2. Klassischer Fallback (z. B. für Firefox oder falls verweigert)
-			const blob = new Blob([content], { type });
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = folderName ? folderName + '-' + filename : filename;
-			document.body.appendChild(link);
-			link.click();
-			link.remove();
-			setTimeout(() => URL.revokeObjectURL(url), 1000);
-		}
-
-		async function exportDelimited(separator, extension) {
-			if (!patientInput.value.trim()) { 
-				patientInput.focus(); 
-				patientInput.setCustomValidity('Bitte eine Patienten- oder Fall-ID eingeben.'); 
-				patientInput.reportValidity(); 
-				patientInput.setCustomValidity(''); 
-				return; 
-			}
-			if (!wardInput.value.trim()) {
-				wardInput.focus();
-				wardInput.setCustomValidity('Bitte zuerst eine Station auswählen.');
-				wardInput.reportValidity();
-				wardInput.setCustomValidity('');
-				return;
-			}
-			if (!state.records.length) { 
-				alert('Bitte zuerst mindestens einen Tageswert speichern.'); 
-				return; 
-			}
-			const lines = [
-				['Patient / Fall-ID', patientInput.value.trim()], 
-				['Station', wardInput.value.trim()], 
-				[], 
-				['Datum', 'SOFA gesamt', 'Delta zum Erstwert']
-			];
-			state.records.forEach((record, index) => {
-				const previousRecord = index ? state.records[index - 1] : null;
-				const delta = previousRecord ? record.score - previousRecord.score : 0;
-				lines.push([record.date, record.score, delta]);
-			});
-			const content = '\uFEFF' + lines.map(line => line.map(value => String(value).replaceAll('"', '""')).map(value => '"' + value + '"').join(separator)).join('\r\n');
-			const stationFolder = sanitizeStorageName(wardInput.value, 'Ohne-Station');
-			await downloadFile(content, extension === 'csv' ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8', 'sofa-verlauf-' + patientInput.value.trim().replace(/[^a-z0-9_-]+/gi, '_') + '.' + extension, stationFolder);
-		}
-
-		function score() { 
-			return fields.reduce((sum, field) => sum + Number(document.getElementById(field).value), 0); 
-		}
-
-		function tone(value, delta) {
-			if (value >= 2 || delta >= 2) return { className: 'red', label: value + ' · erhöhte Organfunktionsstörung' };
-			if (value === 1 || delta === 1) return { className: 'yellow', label: value + ' · leichte Zunahme' };
-			return { className: 'green', label: '0 · keine Zunahme' };
-		}
-
-		function getPreviousRecord(date) {
-			for (let index = state.records.length - 1; index >= 0; index -= 1) {
-				if (state.records[index].date < date) return state.records[index];
-			}
-			return null;
-		}
-
-		function renderLiveScore() {
-			const current = score();
-			const assessmentDate = getAssessmentDate();
-			const prevRecord = getPreviousRecord(assessmentDate);
-			const prevScore = prevRecord ? prevRecord.score : null;
-			const delta = prevScore === null ? 0 : current - prevScore;
-			const status = tone(current, delta);
-			
-			document.getElementById('currentScore').textContent = current;
-			document.getElementById('firstScore').textContent = prevScore === null ? '–' : prevScore;
-			document.getElementById('deltaScore').textContent = (delta > 0 ? '+' : '') + delta;
-			
-			const statusEl = document.getElementById('currentStatus'); 
-			statusEl.className = 'score-status ' + status.className; 
-			statusEl.textContent = status.label;
-			
-			document.getElementById('scoreCard').className = 'score-card ' + status.className;
-			
-			// --- OPTIMIERT: Zuordnung über Label-Mapping ---
-			fields.forEach(field => { 
-				document.getElementById(fieldLabelMap[field]).textContent = document.getElementById(field).value; 
-			});
-			
-			document.getElementById('dateBadge').textContent = new Date(assessmentDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-		}
-
-		function renderHistory() {
-			const container = document.getElementById('historyContainer');
-			if (!state.records.length) { 
-				container.innerHTML = '<div class="empty">Noch keine Tageswerte gespeichert.</div>'; 
-				return; 
-			}
-			container.innerHTML = '<table class="history-table"><thead><tr><th>Datum</th><th>SOFA gesamt</th><th>Delta</th><th>Dokumentation</th></tr></thead><tbody>' + state.records.map((record, index) => { 
-				const previousRecord = index ? state.records[index - 1] : null;
-				const delta = previousRecord ? record.score - previousRecord.score : 0; 
-				const status = tone(record.score, delta); 
-				return '<tr><td>' + new Date(record.date + 'T12:00:00').toLocaleDateString('de-DE') + '</td><td><span class="score-pill ' + status.className + '">' + record.score + '</span></td><td>' + (delta > 0 ? '+' : '') + delta + '</td><td>' + (index === 0 ? 'Erster erhobener Score' : 'Tageswert') + '</td></tr>'; 
-			}).join('') + '</tbody></table>';
-		}
-function renderHistory() {
-    const container = document.getElementById('historyContainer');
-    if (!state.records.length) { 
-        container.innerHTML = '<div class="empty">Noch keine Tageswerte gespeichert.</div>'; 
-        return; 
-    }
-
-    // --- 1. SVG-Grafik generieren ---
-    const width = 800;
-    const height = 200;
-    const padding = { top: 15, right: 25, bottom: 25, left: 32 };
-    const innerWidth = width - padding.left - padding.right;
-    const innerHeight = height - padding.top - padding.bottom;
-
-    const maxScore = Math.max(...state.records.map(r => r.score), 8);
-    const yMax = Math.min(24, Math.ceil((maxScore + 2) / 2) * 2);
-
-    const getY = (val) => padding.top + innerHeight - (val / yMax) * innerHeight;
-    const getX = (idx) => {
-        if (state.records.length === 1) return padding.left + innerWidth / 2;
-        return padding.left + (idx / (state.records.length - 1)) * innerWidth;
-    };
-
-    let gridHtml = '';
-    for (let i = 0; i <= 4; i++) {
-        const val = Math.round((yMax / 4) * i);
-        const y = getY(val);
-        gridHtml += `
-            <line stroke="#d5dce3" stroke-width="1" stroke-dasharray="3 3" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" />
-            <text fill="#607080" font-size="11" x="${padding.left - 8}" y="${y + 4}" text-anchor="end">${val}</text>
-        `;
-    }
-
-    const points = state.records.map((r, i) => ({ x: getX(i), y: getY(r.score), record: r }));
-    const polylineCoords = points.map(p => `${p.x},${p.y}`).join(' ');
-
-    let pointsHtml = '';
-    points.forEach((p, idx) => {
-        const delta = idx > 0 ? p.record.score - state.records[idx - 1].score : 0;
-        let strokeColor = 'var(--green)';
-        if (p.record.score >= 2 || delta >= 2) strokeColor = 'var(--red)';
-        else if (p.record.score === 1 || delta === 1) strokeColor = 'var(--yellow)';
-
-        const dateStr = new Date(p.record.date + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-
-        pointsHtml += `
-            <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#fff" stroke="${strokeColor}" stroke-width="2.5">
-                <title>${p.record.date}: SOFA ${p.record.score} (Delta: ${delta > 0 ? '+' : ''}${delta})</title>
-            </circle>
-            <text fill="#607080" font-size="11" x="${p.x}" y="${height - 10}" text-anchor="middle">${dateStr}</text>
-        `;
-    });
-
-const chartBlock = `
-    <div class="chart-box">
-        <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Verlaufskurve</div>
-        <svg viewBox="0 0 ${width} ${height}">
-            ${gridHtml}
-            <polyline fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${polylineCoords}" />
-            ${pointsHtml}
-        </svg>
-    </div>
-`;
-
-    // --- 2. Tabelle generieren ---
-    const tableBlock = '<table class="history-table"><thead><tr><th>Datum</th><th>SOFA gesamt</th><th>Delta</th><th>Dokumentation</th></tr></thead><tbody>' + state.records.map((record, index) => { 
-        const delta = index > 0 ? record.score - state.records[index - 1].score : 0; 
-        const status = tone(record.score, delta); 
-        return '<tr><td>' + new Date(record.date + 'T12:00:00').toLocaleDateString('de-DE') + '</td><td><span class="score-pill ' + status.className + '">' + record.score + '</span></td><td>' + (delta > 0 ? '+' : '') + delta + '</td><td>' + (index === 0 ? 'Basiswert (Start)' : 'Tageswert vs. Vortag') + '</td></tr>'; 
-    }).join('') + '</tbody></table>';
-
-    // Beides zusammen ausgeben
-    container.innerHTML =tableBlock + chartBlock;
-}
-		fields.forEach(field => document.getElementById(field).addEventListener('change', renderLiveScore));
-		dateInput.addEventListener('change', renderLiveScore);
-		document.getElementById('sofaForm').addEventListener('reset', () => setTimeout(renderLiveScore));
-dateInput.addEventListener('change', applyLabValuesIfAvailable);
-		// --- NEU & INTEGRIERT: Formular-Absenden mit Erstwert- und Delta-Check ---
-		document.getElementById('sofaForm').addEventListener('submit', event => { 
-			event.preventDefault(); 
-			if (!patientInput.value.trim()) { 
-				patientInput.focus(); 
-				patientInput.setCustomValidity('Bitte eine Patienten- oder Fall-ID eingeben.'); 
-				patientInput.reportValidity(); 
-				patientInput.setCustomValidity(''); 
-				return; 
-			} 
-
-			const currentScoreVal = score();
-			const assessmentDate = getAssessmentDate();
-			if (!assessmentDate) {
-				dateInput.setCustomValidity('Bitte ein gültiges Datum im Format DDMMYYYY eingeben.');
-				dateInput.reportValidity();
-				dateInput.setCustomValidity('');
-				return;
-			}
-			const existing = state.records.findIndex(record => record.date === assessmentDate); 
-			const record = { date: assessmentDate, score: currentScoreVal }; 
-
-			if (existing >= 0) state.records[existing] = record; 
-			else state.records.push(record); 
-			
-			state.records.sort((a, b) => a.date.localeCompare(b.date)); 
-			saveLocally(); 
-			renderLiveScore(); 
-			renderHistory(); 
-
-			// Alarm bei einem Erstwert ab 2 Punkten oder einer Zunahme um mindestens 2 Punkte.
-			if (state.records.length > 0) {
-				const prevRecord = getPreviousRecord(record.date);
-				const prevScore = prevRecord ? prevRecord.score : null;
-				const delta = prevScore === null ? 0 : record.score - prevScore;
-				const isInitialAlert = prevScore === null && record.score >= 2;
-				const isWorsening = prevScore !== null && delta >= 2;
-
-				if (isInitialAlert || isWorsening) {
-					const modal = document.getElementById('alertModal');
-					document.getElementById('modalMessage').textContent = isInitialAlert
-						? `Der erste SOFA-Score beträgt ${record.score} Punkte und erreicht damit das Alarmkriterium.`
-						: `Der SOFA-Score ist um +${delta} Punkte gegenüber dem vorherigen Wert angestiegen (Delta >= 2).`;
-					modal.showModal(); // Öffnet den modalen Dialog und blockiert die Seite bis zum Klick
-				}
-			}
-		});
-
-		// Beide Antworten bestätigen den Warnhinweis und schließen den Dialog.
-		['infectionYes', 'infectionNo'].forEach(buttonId => {
-			document.getElementById(buttonId).addEventListener('click', () => {
-				document.getElementById('alertModal').close();
-			});
-		});
-		// --- ENDE NEU ---
-
-		// --- OPTIMIERT: Neue Akte leert nur das Formular, lässt alte Patienten im localStorage unberührt ---
-		document.getElementById('newPatient').addEventListener('click', () => { 
-			state.records = []; 
-			patientInput.value = ''; 
-			wardInput.value = ''; 
-			document.getElementById('sofaForm').reset(); 
-			renderLiveScore(); 
-			renderHistory(); 
-			patientInput.focus(); 
-		});
-
-		// Wechselt man die Patienten-ID, werden automatisch dessen vorhandene Daten geladen
-		patientInput.addEventListener('change', () => {
-			const id = patientInput.value.trim();
-			if (id) {
-				restoreLocalData(id);
-				renderLiveScore();
-				renderHistory();
-			}
-		});
-patientInput.addEventListener('change', () => {
-            const id = patientInput.value.trim();
-            if (id) {
-                restoreLocalData(id);
-                applyLabValuesIfAvailable(); // <-- NEU
-                renderLiveScore();
-                renderHistory();
-            }
-        });
-		patientInput.addEventListener('input', saveLocally);
-		wardInput.addEventListener('change', saveLocally);
-		document.getElementById('exportHistory').addEventListener('click', () => exportDelimited(';', 'csv'));
-		
-		document.getElementById('exportJson').addEventListener('click', async () => {
-			if (!patientInput.value.trim()) { 
-				patientInput.focus(); 
-				patientInput.setCustomValidity('Bitte eine Patienten- oder Fall-ID eingeben.'); 
-				patientInput.reportValidity(); 
-				patientInput.setCustomValidity(''); 
-				return; 
-			}
-			if (!wardInput.value.trim()) {
-				wardInput.focus();
-				wardInput.setCustomValidity('Bitte zuerst eine Station auswählen.');
-				wardInput.reportValidity();
-				wardInput.setCustomValidity('');
-				return;
-			}
-			if (!state.records.length) { 
-				alert('Bitte zuerst mindestens einen Tageswert speichern.'); 
-				return; 
-			}
-			const data = { 
-				format: 'SOFA Monitor Verlauf', 
-				version: fileFormatVersion, 
-				exportedAt: new Date().toISOString(), 
-				patient: patientInput.value.trim(), 
-				ward: wardInput.value.trim(), 
-				records: state.records 
-			};
-			const stationFolder = sanitizeStorageName(wardInput.value, 'Ohne-Station');
-			await downloadFile(JSON.stringify(data, null, 2), 'application/json;charset=utf-8', 'sofa-verlauf-' + patientInput.value.trim().replace(/[^a-z0-9_-]+/gi, '_') + '.json', stationFolder);
-		});
-
-		document.getElementById('importHistory').addEventListener('click', () => document.getElementById('historyFile').click());
-		document.getElementById('historyFile').addEventListener('change', event => {
-			const file = event.target.files[0]; 
-			event.target.value = ''; 
-			if (!file) return;
-			const reader = new FileReader();
-			reader.onload = () => {
-				try {
-					const data = JSON.parse(reader.result);
-					if (data.format !== 'SOFA Monitor Verlauf' || !Array.isArray(data.records) || data.records.some(record => !/^\d{4}-\d{2}-\d{2}$/.test(record.date) || !Number.isInteger(record.score) || record.score < 0 || record.score > 24)) {
-						throw new Error('Ungültiges Format');
-					}
-					state.records = data.records.map(record => ({ date: record.date, score: record.score })).sort((a, b) => a.date.localeCompare(b.date));
-					patientInput.value = data.patient || ''; 
-					wardInput.value = data.ward || '';
-					setAssessmentDate(state.records.length ? state.records[state.records.length - 1].date : today); 
-					saveLocally(); 
-					renderLiveScore(); 
-					renderHistory();
-				} catch (error) { 
-					alert('Die Datei konnte nicht als SOFA-Verlauf geladen werden.'); 
-				}
-			};
-			reader.readAsText(file);
-		});
-function renderChart() {
-    const container = document.getElementById('chartContainer');
-    if (!state.records || state.records.length === 0) {
-        container.innerHTML = '';
-        return;
-    }
-
-    // Dimensionen der Vektorgrafik
-    const width = 800;
-    const height = 220;
-    const padding = { top: 20, right: 35, bottom: 35, left: 45 };
-    const innerWidth = width - padding.left - padding.right;
-    const innerHeight = height - padding.top - padding.bottom;
-
-    // Y-Achse: Skalierung (SOFA Score 0 bis max 24, mindestens bis 12 zur besseren Lesbarkeit)
-    const maxScore = Math.max(...state.records.map(r => r.score), 10);
-    const yMax = Math.min(24, Math.ceil((maxScore + 2) / 2) * 2);
-
-    const getY = (val) => padding.top + innerHeight - (val / yMax) * innerHeight;
-    const getX = (idx) => {
-        if (state.records.length === 1) return padding.left + innerWidth / 2;
-        return padding.left + (idx / (state.records.length - 1)) * innerWidth;
-    };
-
-    // Horizontale Hilfslinien & Beschriftung
-    let gridLinesHtml = '';
-    const ySteps = 4;
-    for (let i = 0; i <= ySteps; i++) {
-        const scoreVal = Math.round((yMax / ySteps) * i);
-        const yPos = getY(scoreVal);
-        gridLinesHtml += `
-            <line class="chart-grid" x1="${padding.left}" y1="${yPos}" x2="${width - padding.right}" y2="${yPos}" />
-            <text class="chart-axis-text" x="${padding.left - 10}" y="${yPos + 4}" text-anchor="end">${scoreVal}</text>
-        `;
-    }
-
-    // Koordinaten der Linie und Punkte berechnen
-    const points = state.records.map((r, i) => ({ x: getX(i), y: getY(r.score), record: r }));
-    const polylineCoords = points.map(p => `${p.x},${p.y}`).join(' ');
-
-    // Punkte mit Ampelfarbe (Grün, Gelb, Rot) und Tooltip versehen
-    let pointsHtml = '';
-    points.forEach((p, idx) => {
-        const delta = idx > 0 ? p.record.score - state.records[idx - 1].score : 0;
-        let strokeColor = 'var(--green)';
-        if (p.record.score >= 2 || delta >= 2) strokeColor = 'var(--red)';
-        else if (p.record.score === 1 || delta === 1) strokeColor = '#e0a400';
-
-        const formattedDate = new Date(p.record.date + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-
-        pointsHtml += `
-            <circle class="chart-point" cx="${p.x}" cy="${p.y}" r="4.5" stroke="${strokeColor}">
-                <title>${p.record.date}: SOFA ${p.record.score} (Delta: ${delta > 0 ? '+' : ''}${delta})</title>
-            </circle>
-            <text class="chart-axis-text" x="${p.x}" y="${height - 10}" text-anchor="middle">${formattedDate}</text>
-        `;
-    });
-
-    container.innerHTML = `
-        <div class="chart-card">
-            <div class="chart-title">Score-Entwicklung</div>
-            <svg class="chart-svg" viewBox="0 0 ${width} ${height}">
-                ${gridLinesHtml}
-                <polyline class="chart-line" points="${polylineCoords}" />
-                ${pointsHtml}
-            </svg>
-        </div>
-    `;
-}
-		restoreLocalData(); 
-		renderLiveScore(); 
-		renderHistory();
-
-		
-	</script>
-	<script>
-		const cnsIcon = document.querySelector('#cns').closest('.criterion').querySelector('.criterion-icon');
-		cnsIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2.8v18.4" /><path d="M12 2.8c-1.5 0-3.3.6-4 1.8-.8-.4-1.8-.3-2.5.3-.8.7-1 1.8-.7 2.7-.9.5-1.5 1.5-1.4 2.6.1.7.4 1.3.8 1.8-.8.6-1.3 1.6-1.1 2.6.2 1 .9 1.8 1.8 2-.5.8-.6 1.8-.2 2.7.5 1 1.5 1.6 2.6 1.6.1.8.6 1.6 1.4 2 1 .5 2.2.4 3.3-.1" /><path d="M12 2.8c1.5 0 3.3.6 4 1.8.8-.4 1.8-.3 2.5.3.8.7 1 1.8.7 2.7.9.5 1.5 1.5 1.4 2.6-.1.7-.4 1.3-.8 1.8.8.6 1.3 1.6 1.1 2.6-.2 1-.9 1.8-1.8 2 .5.8.6 1.8.2 2.7-.5 1-1.5 1.6-2.6 1.6-.1.8-.6 1.6-1.4 2-1 .5-2.2.4-3.3-.1" /><path d="M11 6.8c-1.2 0-2.3.8-2.6 2-.3 1.2.3 2.4 1.4 3" /><path d="M6 10.5c.8.6 1.6 1.4 2.6 1.5 1.2.1 2.4-.6 2.8-1.7" /><path d="M6.2 16.5c1.4.3 2.8-.5 3.3-1.8" /><path d="M11 18.2c-.9.2-1.9-.3-2.4-1.1" /><path d="M13 6.8c1.2 0 2.3.8 2.6 2 .3 1.2-.3 2.4-1.4 3" /><path d="M18 10.5c-.8.6-1.6 1.4-2.6 1.5-1.2.1-2.4-.6-2.8-1.7" /><path d="M17.8 16.5c-1.4.3-2.8-.5-3.3-1.8" /><path d="M13 18.2c.9.2-1.9-.3-2.4-1.1" /></svg>`;
-		const renalIcon = document.querySelector('#renal').closest('.criterion').querySelector('.criterion-icon');
-		renalIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M10.8 11.2c-.6-.7-.8-1.5-.4-2.4.6-1.5 0-3.3-1.6-4.1-2.4-1.2-5.3.3-5.8 2.9-.6 3.2.7 6.4 3.7 7.1 1.7.4 3.1-.4 3.7-1.7.3-.7.1-1.3-.4-1.8" /><path d="M10.3 11.8c.8.5 1.2 1.3 1.2 2.3V21" /><path d="M13.2 11.2c.6-.7.8-1.5.4-2.4-.6-1.5 0-3.3 1.6-4.1 2.4-1.2 5.3.3 5.8 2.9.6 3.2-.7 6.4-3.7 7.1-1.7.4-3.1-.4-3.7-1.7-.3-.7-.1-1.3.4-1.8" /><path d="M13.7 11.8c-.8.5-1.2 1.3-1.2 2.3V21" /></svg>`;
-	</script>
-	
+	<script src="js/lab.js"></script>
+	<script src="js/scoring.js"></script>
+	<script src="js/storage.js"></script>
+	<script src="js/chart.js"></script>
+	<script src="js/ui.js"></script>
 </body>
 </html>
